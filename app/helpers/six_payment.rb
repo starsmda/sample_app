@@ -47,7 +47,7 @@ class SixPayment
                 :certsFile
 
 	# Define configurations for test and production
-	DefaulyTestAccountID='99867-94913159'
+	DefaultTestAccountID='99867-94913159'
 	VtConfig='DarrenPlay'
 
   # Define Saferpay webservice API URLs
@@ -96,24 +96,24 @@ class SixPayment
 
     # Set all mandatory and important variables to default...
     if Rails.env.production?
-      @accountId = '<tbd>'
+      @accountId = DefaultTestAccountID
       @amount = 10.0
       @currency = CHF
       @description = 'DrawMGT V2 Individual Monthly Subscription'
       @orderId = 'P000000000'
-      @vtConfig = 'SoftXSprod'
+      @vtConfig = 'DarrenPlay'
       @successLink = 'http://zg.softxs.ch/test/v2-payment/success.php'
       @failLink = 'http://zg.softxs.ch/test/v2-payment/failure.php'
       @backLink = 'http://zg.softxs.ch/test/v2-payment/cancel.php'
-      @notifyURL = 'http://zg.softxs.ch/test/v2-payment/success.php'
+      @notifyURL = 'http://zg.softxs.ch/test/v2-payment/notice.php'
       @notifyAddress = 'darren.starsmore@gmail.com'
       @showLanguages = 'yes'
       @delivery = 'no' 
-      @verfiyCert = true
+      @verfiyCert = false # Don't know how to do this on heroku.
       @certsFile = '/usr/local/CA_Certs/cacerts.pem'    
       
     else
-      @accountId = DefaulyTestAccountID
+      @accountId = DefaultTestAccountID
       @amount = 10.0
       @currency = CHF
       @description = '[TEST] DrawMGT V2 Individual Monthly Subscription'

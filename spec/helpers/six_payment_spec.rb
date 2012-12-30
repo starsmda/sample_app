@@ -70,7 +70,7 @@ describe "SixPayment Instance" do
 
   describe "default Construction" do
     its(:accountId)   { should_not be_blank }
-    its(:accountId)   { should == SixPayment::DefaulyTestAccountID }
+    its(:accountId)   { should == SixPayment::DefaultTestAccountID }
     its(:description) { should =~ /^\[TEST\]/ }
     its(:successLink) { should_not be_blank }
     its(:failLink)    { should_not be_blank }
@@ -96,7 +96,7 @@ describe "SixPayment Instance" do
       sp.certsFile.should == '/tmp/cacerts.pem'
     end
     it "should default non-specified attributes" do
-      sp.accountId.should == SixPayment::DefaulyTestAccountID
+      sp.accountId.should == SixPayment::DefaultTestAccountID
       sp.description.should =~ /^\[TEST\]/
     end
   end
