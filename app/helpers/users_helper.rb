@@ -7,4 +7,14 @@ module UsersHelper
     gravatar_url = "https://secure.gravatar.com/avatar/#{gravatar_id}?s=#{size}"
     image_tag(gravatar_url, alt: user.name, class: "gravatar")
   end
+
+  # Payment link for a user
+  def buySubscription_for(user, amount, currency, description = "Subscription")
+  	return SixPayment.new(amount: amount, 
+  						  currency: currency,
+  						  description: description,
+  						  orderId: user.id,
+  						  notifyAddress: user.email).getPayPageURI()
+  end
+
 end
