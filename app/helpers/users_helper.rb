@@ -9,12 +9,30 @@ module UsersHelper
   end
 
   # Payment link for a user
-  def buySubscription_for(user, amount, currency, description = "Subscription")
-  	return SixPayment.new(amount: amount, 
+  def buySubscription_for(user, 
+                          amount, 
+                          currency, 
+                          description = "Subscription")
+
+    sp = SixPayment.new(amount: amount, 
   						  currency: currency,
   						  description: description,
   						  orderId: user.id,
-  						  notifyAddress: user.email).getPayPageURI()
+  						  notifyAddress: user.email,
+                backLink: edit_user_url(user),
+                failLink: payfail_url(user),
+                successLink: paysuccess_url(user),
+                notifyURL: payment_notifications_notify_url)
+
+    logger.debug("Set payment callbacks to" + 
+                 " back = " + sp.backLink + 
+                 " fail = " + sp.failLink + 
+                 " success = " + sp.successLink +
+                 " notify = " + sp.notifyURL)
+
+    # Todo? Set notify URL?
+
+    return sp.getPayPageURI()
   end
 
 end

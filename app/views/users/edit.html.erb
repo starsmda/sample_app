@@ -41,6 +41,13 @@
                                       100, SixPayment::EUR,
                                       "Annual Subscription - EUR"), 
                                       class: "btn btn-large btn-primary" %>
+      <p> Specail to play with error codes: </p>
+      <!-- TODO: Remove. -->
+      <%= link_to "1 year 1099CHF", 
+                  buySubscription_for(@user, 
+                                      100.99, SixPayment::CHF,
+                                      "Annual Subscription - ECHF Fail"), 
+                                      class: "btn btn-large btn-primary" %>
     </div>
 </div>
 

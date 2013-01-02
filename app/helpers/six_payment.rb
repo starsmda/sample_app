@@ -16,7 +16,7 @@
 # 3. Add valid? method to check optional versus mandatory fields and values are in range.
 # 4. Add timeout exception handler around the Net::HTTP.getResponse call and others.
 # 5. Add logging of errors.
-# 6. Move Currency and Language lists out to a helper
+#
 #
 #
 # CreatePayInit (getPayPageURI)
@@ -109,8 +109,8 @@ class SixPayment
       @notifyAddress = 'darren.starsmore@gmail.com'
       @showLanguages = 'yes'
       @delivery = 'no' 
-      @verfiyCert = false # Don't know how to do this on heroku.
-      @certsFile = '/usr/local/CA_Certs/cacerts.pem'    
+      @verfiyCert = true
+      @certsFile = (Rails.root + 'app/assets/cacert.pem').to_s
       
     else
       @accountId = DefaultTestAccountID
@@ -127,7 +127,7 @@ class SixPayment
       @showLanguages = 'yes'
       @delivery = 'no'
       @verifyCert = true
-      @certsFile = '/Users/darrenstarsmore/Development/CA_Certs/cacert.pem'    
+      @certsFile = (Rails.root + 'app/assets/cacert.pem').to_s
     end
 
     # Apply args...

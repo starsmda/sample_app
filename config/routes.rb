@@ -1,4 +1,5 @@
 SampleApp::Application.routes.draw do
+ 
   resources :users do
     member do
       get :following, :followers
@@ -15,6 +16,9 @@ SampleApp::Application.routes.draw do
   match '/signup',  to: 'users#new'
   match '/signin',  to: 'sessions#new'
   match '/signout', to: 'sessions#destroy', via: :delete
+  match '/payfail/:id', to: 'static_pages#payfail', :as => :payfail
+  match '/paysuccess/:id', to: 'static_pages#paysuccess', :as => :paysuccess
+  match "/payment_notifications/notify", to: 'payment_notifications#notify'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
