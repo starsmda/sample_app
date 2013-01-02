@@ -64,4 +64,11 @@ SampleApp::Application.configure do
   # Log the query plan for queries taking more than this (works
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
+
+  # TODO: Remove - DLS 
+  # Turn logging level to debug (i.e. log all)
+  STDOUT.sync = true
+  logger = Logger.new(STDOUT)
+  logger.level = 0 # 0=debug, 1=info, 2=warn, 3=error, 4=fatal
+  Rails.logger = Rails.application.config.logger = logger
 end
