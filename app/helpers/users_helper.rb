@@ -24,7 +24,7 @@ module UsersHelper
                 successLink: paysuccess_url(user),
                 notifyURL: payment_notifications_notify_url)
 
-    logger.debug("Set payment callbacks to" + 
+    logger.info("Set payment callbacks to" + 
                  " back = " + sp.backLink + 
                  " fail = " + sp.failLink + 
                  " success = " + sp.successLink +

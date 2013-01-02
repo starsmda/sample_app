@@ -66,7 +66,7 @@ SampleApp::Application.configure do
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
   # TODO: Remove - DLS 
-  # Turn logging level to debug (i.e. log all)
+  # Turn logging level to debug (i.e. log all) - doesn't seem to work on heroku
   STDOUT.sync = true
   logger = Logger.new(STDOUT)
   logger.level = 0 # 0=debug, 1=info, 2=warn, 3=error, 4=fatal
