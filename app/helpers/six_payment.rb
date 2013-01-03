@@ -116,7 +116,7 @@ class SixPayment
       @delivery = 'no' 
       @verfiyCert = true
       @certsFile = (Rails.root + 'app/assets/cacert.pem').to_s
-      @passwordForTestOnly = nil  # Must not be used in production 
+      @passwordForTestOnly = TestPassword  # Must not be used in production 
     else
       @accountId = DefaultTestAccountID
       @amount = 10.0
