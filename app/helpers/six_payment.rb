@@ -24,6 +24,7 @@
 # sensible defaults. The method also allows attributes on the call invocation.
 #
 require 'net/https'
+require 'rexml/document'
 
 class SixPayment
   attr_accessor :accountId,
@@ -44,7 +45,8 @@ class SixPayment
                 :cardRefId,
                 :delivery,
                 :verifyCert,
-                :certsFile
+                :certsFile,
+                :passwordForTestOnly
 
 	# Define configurations for test and production
 	DefaultTestAccountID='99867-94913159'
@@ -57,6 +59,9 @@ class SixPayment
   VerifyPayConfirmAPI='https://www.saferpay.com/hosting/VerifyPayConfirm.asp'
   # Settlement of a payment:
   PayCompleteV2API='https://www.saferpay.com/hosting/PayCompleteV2.asp'
+
+  # The test system requires a passowrd to complete payment :o(
+  TestPassword='XAjc3Kna'  
 
 	# Define a subset of currency constants as per ISO 4217
 	CHF='CHF'
@@ -111,7 +116,7 @@ class SixPayment
       @delivery = 'no' 
       @verfiyCert = true
       @certsFile = (Rails.root + 'app/assets/cacert.pem').to_s
-      
+      @passwordForTestOnly = nil  # Must not be used in production 
     else
       @accountId = DefaultTestAccountID
       @amount = 10.0
@@ -128,6 +133,7 @@ class SixPayment
       @delivery = 'no'
       @verifyCert = true
       @certsFile = (Rails.root + 'app/assets/cacert.pem').to_s
+      @passwordForTestOnly = TestPassword
     end
 
     # Apply args...
@@ -218,6 +224,173 @@ class SixPayment
     return (@verifyCert.nil? ? false : @verifyCert)
   end
 
+  # 
+  # Class Method processPaymentNotification (ActionDispath::Request request)
+  # Process a payment notification.
+  # This method takes the request from the controller action invoked by SIX on the
+  # notifyURL.
+  #
+  def self.processPaymentNotification (request)
+    # Pull out DATA and SIGNATURE from parameters
+    data, signature = request.params["DATA"], request.params["SIGNATURE"]
+
+    # Check key parameters are present.
+    unless (data && signature)
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         " Missing mandatory parameter(s) (DATA and/or SIGNATURE!)"
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " << 
+                         "Ignoring notifcation from #{request.remote_ip} with params #{request.params}"
+      return
+    end
+
+    # Parse the DATA parameter.
+    doc = REXML::Document.new(data)
+    pe = doc.elements['IDP']
+
+    if pe.nil?
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "Mandatory IDP element missing!"
+      return
+    end
+
+    if pe.attributes['MSGTYPE'] != 'PayConfirm'
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "Unexpected msgtype #{pe.attributes['MSGTYPE']}!"
+      return
+    end
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "IDP Attributes retrieved are #{pe.attributes}"
+    #
+    # Verify the PayConfirm and if ok complete the payment
+    #
+    # TODO: Need to refactor so that a web service call can be done from a class method and doesn't 
+    # require this calss instance to be made.
+    sp = SixPayment.new
+    sp.payComplete pe.attributes if sp.verifyPayConfirm(request.params)
+
+  end
+
+  # 
+  # Class Method verifyPayConfirm 
+  # Verifies the given PayConfirm message.
+  # http: request containing the PayConfirm message
+  # returns true on successful verification else false. 
+  # TODO: Refactor so this can be class method.
+  #
+  def verifyPayConfirm(params)
+    #
+    # Pass the DATA and SIGNATURE params on the verify web service
+    #
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "params = #{params}"
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "data = #{params['DATA']}"
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "signature = #{params['SIGNATURE']}"
+
+    # TODO refactor with the getPayPageURI
+    res = nil;
+
+    # Just capture the DATA and SIGNATURE from the params
+    # TODO: There must be a more eligant way of doing this.
+    p = {'DATA' => params['DATA'], 'SIGNATURE' => params['SIGNATURE']}
+    # Code is uglier that necessary as https requires a different calling convention.
+    uri = URI.join(VerifyPayConfirmAPI,
+                    "?" + URI.encode_www_form(p))
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "Using this URI to verifyPayConfirm #{uri.to_s}"
+
+    if (uri.scheme == 'https')
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.ca_file = @certsFile 
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless (self.verifyCert?)
+      request = Net::HTTP::Get.new(uri.request_uri)
+      res = http.request(request)
+    else
+      res = Net::HTTP.get_response(uri);
+    end
+
+    # Always returns HTTPSUccess. A failure is indicated in the result body with an ERROR string.
+    if (!res.is_a?(Net::HTTPSuccess))
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "Didn't get HTTPSuccess result from web service call!"
+      return false
+    end
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "Result from web service call: \"#{res.body}\""
+
+    if (res.body =~ /^ERROR\:/)
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "ERROR result from verify web service call! ErrMsg is: \"#{res.body}\""
+      return false
+    end
+
+    return true
+  end
+
+  # 
+  # Class Method payComplete (args)
+  # TODO:
+  #
+  def payComplete (args)
+
+    #
+    # Check for mandatory args ACCOUNTID and ID
+    #
+    unless (args['ACCOUNTID'] && args['ID'])
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "Mandatory argument(s) missing (ACCOUNTID and/or ID)!"
+      return
+    end
+
+    # TODO refactor to capture below once and also from and class method.
+
+    # TODO: There must be a more eligant way of doing this.
+    p = {'ACCOUNTID' => args['ACCOUNTID'], 'ID' => args['ID']}
+
+    # Need to add in a password on the test system.
+    p['spPassword'] = @passwordForTestOnly unless @passwordForTestOnly.blank?
+
+    uri = URI.join(PayCompleteV2API,
+                    "?" + URI.encode_www_form(p))
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "Using this URI to PayComplete #{uri.to_s}"
+
+    # Code is uglier that necessary as https requires a different calling convention.
+    if (uri.scheme == 'https')
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.ca_file = @certsFile 
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless (self.verifyCert?)
+      request = Net::HTTP::Get.new(uri.request_uri)
+      res = http.request(request)
+    else
+      res = Net::HTTP.get_response(uri);
+    end
+
+    # Always returns HTTPSUccess. A failure is indicated in the result body with an ERROR string.
+    if (!res.is_a?(Net::HTTPSuccess))
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "Didn't get HTTPSuccess result from web service call!"
+      return
+    end
+
+    Rails.logger.debug "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "Result from web service call: \"#{res.body}\""
+
+    if (res.body =~ /^ERROR\:/)
+      Rails.logger.error "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                         "ERROR result from verify web service call! ErrMsg is: \"#{res.body}\""
+      return
+    end
+
+  end
 end
 
 
