@@ -390,6 +390,10 @@ class SixPayment
       return
     end
 
+    # Payment Completed.
+    Rails.logger.info "[DLS] file:#{__FILE__} line:#{__LINE__} method:#{__method__} " <<
+                       "Payment Complete :o) Result from web service call: \"#{res.body}\""
+
   end
 end
 
