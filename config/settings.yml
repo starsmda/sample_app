@@ -1,0 +1,14 @@
+#
+# Main Configuration/Settings file
+#
+# This files contains all possible settings with defaults.
+# VALUES CAN BE OVERRIDDEN BY:
+#	environment specific settings, or
+#   local settings.
+#
+
+SXS:
+  test_num: 1234
+  test_str: Hellow World
+  test_ERB: <%= "Root:#{Rails.root} Env:#{Rails.env}" %>
+
