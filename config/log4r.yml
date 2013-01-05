@@ -1,0 +1,67 @@
+#
+# Log4r configuration file.
+#
+# TODO: add email outputter for ERROR and FATAL messages
+#
+# Notes;
+# - multiple outputters can be added to each logger.
+# - non-documented %L in the date_pattern represents milli-seconds
+# - non-documented %6N in the date_pattern represents micro-seconds
+#   also... %3N = milli, %9N = nano etc..
+#
+log4r_config:
+  loggers:
+    - name : development
+      level : DEBUG
+      additive : 'false'
+      trace : 'true'
+      outputters:
+      - standard_plus_trace_log_outputter
+      - stderr_outputter
+    - name : test
+      level : DEBUG
+      additive : 'false'
+      trace : 'true'
+      outputters:
+      - standard_plus_trace_log_outputter
+      - stderr_outputter
+    - name : staging
+      level : INFO
+      additive : 'false'
+      trace : 'true'
+      outputters:
+      - standard_plus_trace_log_outputter
+      - stderr_outputter
+    - name : production
+      level : INFO
+      additive : 'false'
+      trace : 'true'
+      outputters:
+      - standard_plus_trace_log_outputter
+      - stderr_outputter
+ 
+  outputters:
+    - type : StderrOutputter
+      name : stderr_outputter
+      level : INFO
+      formatter:
+        date_pattern: '%Y-%m-%d %H:%M:%S'
+        pattern : "[SXS] [%d] PID:%p %t %l %m"
+        type : PatternFormatter
+    - type : FileOutputter
+      name : standard_log_outputter
+      trunc : 'false'
+      filename : <%= "#{Rails.root}/log/#{Rails.env}.log" %>
+      formatter :
+        date_pattern: '%Y-%m-%d %H:%M:%S.%3N'
+        pattern : "[SXS] [%d] %l %m"
+        type : PatternFormatter
+    - type : FileOutputter
+      name : standard_plus_trace_log_outputter
+      trunc : 'false'
+      filename : <%= "#{Rails.root}/log/#{Rails.env}.log" %>
+      formatter :
+        date_pattern: '%Y-%m-%d %H:%M:%S.%3N'
+        pattern : "[SXS] [%d] %t %l %m"
+        type : PatternFormatter
+

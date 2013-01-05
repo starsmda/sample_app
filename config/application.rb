@@ -66,3 +66,8 @@ module SampleApp
     config.assets.version = '1.0'
   end
 end
+
+#
+# Initialise log4r logging.
+#
+require File.expand_path(File.dirname(__FILE__) + "/log4r_init.rb")
