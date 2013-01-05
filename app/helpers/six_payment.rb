@@ -295,6 +295,7 @@ class SixPayment
 
     # Just capture the DATA and SIGNATURE from the params
     # TODO: There must be a more eligant way of doing this.
+    # Look into select with a block.
     p = {'DATA' => params['DATA'], 'SIGNATURE' => params['SIGNATURE']}
     # Code is uglier that necessary as https requires a different calling convention.
     uri = URI.join(VerifyPayConfirmAPI,
