@@ -24,7 +24,6 @@ log4r_config:
       trace : 'true'
       outputters:
       - standard_plus_trace_log_outputter
-      - stderr_outputter
     - name : staging
       level : INFO
       additive : 'false'

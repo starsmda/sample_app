@@ -14,25 +14,15 @@ module UsersHelper
                           currency, 
                           description = "Subscription")
 
-    sp = SixPayment.new(amount: amount, 
-  						  currency: currency,
-  						  description: description,
-  						  orderId: user.id,
-  						  notifyAddress: user.email,
-                backLink: edit_user_url(user),
-                failLink: payfail_url(user),
-                successLink: paysuccess_url(user),
-                notifyURL: payment_notifications_notify_url)
-
-    logger.info("Set payment callbacks to" + 
-                 " back = " + sp.backLink + 
-                 " fail = " + sp.failLink + 
-                 " success = " + sp.successLink +
-                 " notify = " + sp.notifyURL)
-
-    # Todo? Set notify URL?
-
-    return sp.getPayPageURI()
+    SixPayment.new.getPayPageURI(amount: amount, 
+                                 currency: currency,
+                                 description: description,
+                                 orderId: user.id,
+                                 userNotify: user.email,
+                                 backLink: edit_user_url(user),
+                                 failLink: payfail_url(user),
+                                 successLink: paysuccess_url(user),
+                                 notifyURL: payment_notifications_notify_url)
   end
 
 end

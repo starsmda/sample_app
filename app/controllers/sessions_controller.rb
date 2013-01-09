@@ -10,6 +10,7 @@ class SessionsController < ApplicationController
       redirect_back_or user
     else
       flash.now[:error] = 'Invalid email/password combination' # Not quite right!
+      logger.warn "Invalid email/password combination from ip #{request.remote_ip}"
       render 'new'
     end
 

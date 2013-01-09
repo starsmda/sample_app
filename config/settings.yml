@@ -7,8 +7,40 @@
 #   local settings.
 #
 
-SXS:
-  test_num: 1234
-  test_str: Hellow World
-  test_ERB: <%= "Root:#{Rails.root} Env:#{Rails.env}" %>
+# Examples
+#SXS:
+#  test_num: 1234
+#  test_str: Hellow World
+#  test_ERB: <%= "Root:#{Rails.root} Env:#{Rails.env}" %>
 
+
+#
+# OpenSSL
+#
+SXS:
+  OpenSSL:
+    CertsFile: &CERTSFILE <%= "#{Rails.root}/app/assets/cacert.pem" %>
+
+#
+# SixPayments 
+#
+SixPayment:
+  AccountID:     '99867-94913159'
+  VtConfig:      DarrenPlay
+  NotifyAddress: darren.starsmore@gmail.com
+  ShowLanguages: 'yes'
+  Delivery:      'no'
+  VerifyCerts:   true
+  CertsFile:     *CERTSFILE
+  TestPassword:  XAjc3Kna    # **MUST** be undefined for production usage.
+
+  # Web Interface to SafePay
+  HttpsAPI:
+    # Generation of a payment link:
+    CreatePayInitAPI:      'https://www.saferpay.com/hosting/CreatePayInit.asp'
+    # Verifying an authorization response:
+    VerifyPayConfirmAPI:   'https://www.saferpay.com/hosting/VerifyPayConfirm.asp'
+    # Settlement of a payment:
+    PayCompleteV2API:      'https://www.saferpay.com/hosting/PayCompleteV2.asp'
+
+ 
